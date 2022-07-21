@@ -40,17 +40,25 @@ const addBuildRequest = async (chatter, number) => {
   const response = await fetch(url, {method: 'POST'})
     .then(res => res.json())
     .then(res => addCheckList(res, number))
-    .then(res => console.log(res))
-
-  console.log("addBuildRequest response", response)
 
   return `${number} requests added for ${chatter}`
 }
 
-const checkAvailableRequests = (chatter) => {}
-const addBuild = (chatter, build) => {}
-const cleanQ = (number) => {}
+const checkAvailableRequests = async (chatter) => {}
 
+const addBuild = async (chatter, build) => {
+  const [queryChatter, queryAction, ...rest] = decodeURI(build).split(" ");
+  const buildString = encodeURI(`${chatter} - ${rest.join(" ")}`);
+
+  const url = `https://api.trello.com/1/cards?idList=${qIdList}&key=${trelloApiKey}&token=${trelloApiToken}&name=${buildString}`
+
+  const response = await fetch(url, {method: 'POST'})
+    .then(res => res.json())
+
+  return `Build added for ${chatter}`
+}
+
+const cleanQ = (number) => {}
 
 const channelRequests = {
   add: (chatter, number) => addBuildRequest(chatter, number),
@@ -67,7 +75,6 @@ const parseRequest = async (apiRequest: any) => {
 export default async function (req: NextApiRequest, res: NextApiResponse) {
   try{
     const actionResponse = await parseRequest(req.query);
-    console.log("actionResponse", actionResponse)
     res
     .status(200)
     .send(
