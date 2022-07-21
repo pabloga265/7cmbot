@@ -1,39 +1,58 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
 const trelloApiKey = process.env.TRELLO_API_KEY
-const trelloApiToken = process.env.TRELLO_API_TOKEN
+const trelloApiToken = process.env.TRELLO_API_TOKEN 
 const requestIdList = process.env.REQUEST_ID_LIST
+const qIdList = process.env.Q_ID_LIST
 
-const addCheckList = async (card) => {
+const addCheckList = async (card, number) => {
   const { id, due, idBoard, idList } = card
   const url = `https://api.trello.com/1/checklists?idCard=${id}&key=${trelloApiKey}&token=${trelloApiToken}&name=requestLeft`
-  const response = await fetch(url, {method: 'POST'}).then(addCheckList)
-
+  return await fetch(url, {method: 'POST'})
+    .then(res => res.json())
+    .then(res => populateCheckList(res, number))
 }
 
-const populateCheckList = async (card) => {
-  const { id, due, idBoard, idList } = card
-    const url = `https://api.trello.com/1/checklists?idCard=${id}&key=${trelloApiKey}&token=${trelloApiToken}&name=requestLeft`
-    const response = await fetch(url, {method: 'POST'}).then(addCheckList)
+const populateCheckList = async (checkList, number) => {
+  const {
+    id,
+    name,
+    idBoard,
+    idCard,
+    pos,
+    checkItems,
+    limits,
+  } = checkList;
+  const count = parseInt(number);
+  console.log("count")
+  console.log(count)
+  
+  const url = `https://api.trello.com/1/checklists/${id}/checkItems/?name=request_${count}&key=${trelloApiKey}&token=${trelloApiToken}`
+  const response = await fetch(url, {method: 'POST'}).then(res => count === 1 ? res : populateCheckList(checkList, count-1))
+  console.log(response)
+  return response
 }
 
-const modifyCheckList = async () => 
+const modifyCheckList = async () => {}
 
 const addBuildRequest = async (chatter, number) => {
-  const url = `https://api.trello.com/1/cards?idList=${requestIdList}&key=${trelloApiKey}&token=${trelloApiToken}&name=${chatter}`
-  const response = await fetch(url, {method: 'POST'}).then(addCheckList)
+  const url = `https://api.trello.com/1/cards?idList=${requestIdList}&key=${trelloApiKey}&token=${trelloApiToken}&name=${chatter.displayName}`
+  const response = await fetch(url, {method: 'POST'})
+    .then(res => res.json())
+    .then(res => addCheckList(res, number));
+  return response
 }
 
 const checkAvailableRequests = (chatter) => {}
 const addBuild = (chatter, build) => {}
-const cleanBanked = (number) => {}
+const cleanQ = (number) => {}
 
-const channelRequests = (requestParam, requestAttributes) => ({
-  addBuildRequest: (chatter, number) => addBuildRequest(chatter, number),
-  checkAvailableRequests: (chatter) => checkAvailableRequests(chatter),
-  addBuild: (chatter, build) => addBuild(chatter, build),
-  cleanBanked: (number) => cleanBanked(number)
-})
+const channelRequests = {
+  add: (chatter, number) => addBuildRequest(chatter, number),
+  check: (chatter) => checkAvailableRequests(chatter),
+  build: (chatter, build) => addBuild(chatter, build),
+  clean: (chatter, number) => cleanQ(number)
+}
 
 const parseNightbotChannel = (channelParams: string) => {
   const params = new URLSearchParams(channelParams);
@@ -58,18 +77,26 @@ const parseNightbotUser = (userParams: string) => {
   };
 };
 
-const parseRequest = async (apiRequest: string) => {
-  channelRequests()
-  await 
+const parseRequest = async (apiRequest: any) => {
+  const {action, chatter, params} = apiRequest;
+  return channelRequests[action](chatter, params);
 }
 
 export default async function (req: NextApiRequest, res: NextApiResponse) {
-  const chatter = parseNightbotUser(req.headers['nightbot-user'] as string);
-  const parseRequest(req.query, user);
-
-  res
+  try{
+    const actionResponse = parseRequest(req.query);
+    res
     .status(200)
     .send(
-      `Hello! Your username is ${user.displayName} and the current channel is ${channel.displayName}. ${JSON.stringify(req.query)}`
+      `action Response add test ${JSON.stringify(actionResponse)}`
     );
+  }catch(e){
+    res
+    .status(500)
+    .send(
+      `err ${JSON.stringify(e)}`
+    );
+  }
+  
+
 }
