@@ -83,10 +83,10 @@ const checkFirstAvailableRequest = async (chatter) => {
   const checkListResponse = await fetch(checkListUrl, {method: 'GET'}).then(res => res.json())
 
   const incompleteItems = checkListResponse.checkItems.filter(item => item.state === "incomplete")
-  if(incompleteItems.length <= 0) return false
+  if(incompleteItems.length <= 0) {empty: true}
 
   const firstIncompleteItem = incompleteItems[0].id
-  return { cardId: cardsInBanked[0].id, checkedItemId: firstIncompleteItem, last: incompleteItems.length === 1 }
+  return { cardId: cardsInBanked[0].id, checkedItemId: firstIncompleteItem, last: incompleteItems.length === 1, empty: false }
 }
 
 const markRequestAsDone = async (cardId, checkedItemId) => {
@@ -97,8 +97,8 @@ const markRequestAsDone = async (cardId, checkedItemId) => {
 const addBuild = async (chatter, build) => {
   const [queryChatter, queryAction, ...rest] = decodeURI(build).split(" ");
   const buildString = encodeURI(`${chatter} - ${rest.join(" ")}`);
-  const {cardId, checkedItemId, last} = await checkFirstAvailableRequest(chatter)
-  if(!cardId) return `The user ${chatter} doesn't have any request left`
+  const {cardId, checkedItemId, last, empty} = await checkFirstAvailableRequest(chatter)
+  if(empty) return `The user ${chatter} doesn't have any request left`
 
   const url = `https://api.trello.com/1/cards?idList=${qIdList}&key=${trelloApiKey}&token=${trelloApiToken}&name=${buildString}`
 
