@@ -15,6 +15,11 @@ const addCheckList = async (card, number) => {
   return response
 }
 
+const archiveCard = async (cardId) => {
+  const url = `https://api.trello.com/1/cards/${cardId}?closed=true&key=${trelloApiKey}&token=${trelloApiToken}`
+  const response = await fetch(url, {method: 'DELETE'}).then(res=> res).catch(error => error)
+}
+
 const populateCheckList = async (checkList, number) => {
   const {
     id,
@@ -33,8 +38,6 @@ const populateCheckList = async (checkList, number) => {
   return count !== 1 && await populateCheckList(checkList, count-1)
 }
 
-const modifyCheckList = async () => {}
-
 const addBuildRequest = async (chatter, number) => {
   const url = `https://api.trello.com/1/cards?idList=${requestIdList}&key=${trelloApiKey}&token=${trelloApiToken}&name=${chatter}`
   const response = await fetch(url, {method: 'POST'})
@@ -52,7 +55,7 @@ const checkAvailableRequests = async (chatter) => {
 
   const cardsInBanked = response.cards
     .filter(item => item.idList === requestIdList && !item.closed)
-    .sort((a,b) => new Date(a.due) - new Date(b.due));
+    .sort((a,b) => new Date(a.due).getTime() - new Date(b.due).getTime());
 
   const checkListIdInAllBanked = cardsInBanked.map(card => card.idChecklists);
 
@@ -83,12 +86,10 @@ const checkFirstAvailableRequest = async (chatter) => {
   if(incompleteItems.length <= 0) return false
 
   const firstIncompleteItem = incompleteItems[0].id
-
-  return { cardId: cardsInBanked[0].id, checkedItemId: firstIncompleteItem }
+  return { cardId: cardsInBanked[0].id, checkedItemId: firstIncompleteItem, last: incompleteItems.length === 1 }
 }
 
 const markRequestAsDone = async (cardId, checkedItemId) => {
-
   const markAsComplete = `https://api.trello.com/1/cards/${cardId}/checkItem/${checkedItemId}?state=complete&key=${trelloApiKey}&token=${trelloApiToken}`
   const response = await fetch(markAsComplete, {method: 'PUT'}).then(res => res.json())
 }
@@ -96,7 +97,7 @@ const markRequestAsDone = async (cardId, checkedItemId) => {
 const addBuild = async (chatter, build) => {
   const [queryChatter, queryAction, ...rest] = decodeURI(build).split(" ");
   const buildString = encodeURI(`${chatter} - ${rest.join(" ")}`);
-  const {cardId, checkedItemId} = await checkFirstAvailableRequest(chatter)
+  const {cardId, checkedItemId, last} = await checkFirstAvailableRequest(chatter)
   if(!cardId) return `The user ${chatter} doesn't have any request left`
 
   const url = `https://api.trello.com/1/cards?idList=${qIdList}&key=${trelloApiKey}&token=${trelloApiToken}&name=${buildString}`
@@ -104,6 +105,10 @@ const addBuild = async (chatter, build) => {
   const response = await fetch(url, {method: 'POST'})
     .then(res => res.json())
     .then(res => markRequestAsDone(cardId, checkedItemId))
+
+  if(last){
+    await archiveCard(cardId)
+  }
 
   return `Build added for ${chatter}`
 }
