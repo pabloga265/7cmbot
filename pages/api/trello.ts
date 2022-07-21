@@ -8,9 +8,11 @@ const qIdList = process.env.Q_ID_LIST
 const addCheckList = async (card, number) => {
   const { id, due, idBoard, idList } = card
   const url = `https://api.trello.com/1/checklists?idCard=${id}&key=${trelloApiKey}&token=${trelloApiToken}&name=requestLeft`
-  return await fetch(url, {method: 'POST'})
+  const response = await fetch(url, {method: 'POST'})
     .then(res => res.json())
     .then(res => populateCheckList(res, number))
+
+  return response
 }
 
 const populateCheckList = async (checkList, number) => {
@@ -25,8 +27,10 @@ const populateCheckList = async (checkList, number) => {
   } = checkList;
   const count = parseInt(number);
   const url = `https://api.trello.com/1/checklists/${id}/checkItems/?name=request_${count}&key=${trelloApiKey}&token=${trelloApiToken}`
-  const response = await fetch(url, {method: 'POST'})
-    .then(res => count === 1 ? res : await populateCheckList(checkList, count-1))
+  await fetch(url, {method: 'POST'}).then(res=> res)
+  
+
+  return count !== 1 && await populateCheckList(checkList, count-1)
 }
 
 const modifyCheckList = async () => {}
@@ -36,9 +40,11 @@ const addBuildRequest = async (chatter, number) => {
   const response = await fetch(url, {method: 'POST'})
     .then(res => res.json())
     .then(res => addCheckList(res, number))
-    .finally(() => `${number} requests added for ${chatter}`)
+    .then(res => console.log(res))
 
-  return response
+  console.log("addBuildRequest response", response)
+
+  return `${number} requests added for ${chatter}`
 }
 
 const checkAvailableRequests = (chatter) => {}
@@ -60,7 +66,8 @@ const parseRequest = async (apiRequest: any) => {
 
 export default async function (req: NextApiRequest, res: NextApiResponse) {
   try{
-    const actionResponse = parseRequest(req.query);
+    const actionResponse = await parseRequest(req.query);
+    console.log("actionResponse", actionResponse)
     res
     .status(200)
     .send(
