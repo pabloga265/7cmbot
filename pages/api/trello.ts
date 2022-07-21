@@ -1,14 +1,29 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
-/*
-Nightbot-Response-Url: https://api.nightbot.tv/1/channel/send/TVRRM05UazRNVGsyT1RnNE1TOWthWE5...
+const trelloApiKey = process.env.TRELLO_API_KEY
+const trelloApiToken = process.env.TRELLO_API_TOKEN
+const requestIdList = process.env.REQUEST_ID_LIST
 
-Nightbot-User: name=night&displayName=night&provider=twitch&providerId=11785491&userLevel=owner
+const addCheckList = async (card) => {
+  const { id, due, idBoard, idList } = card
+  const url = `https://api.trello.com/1/checklists?idCard=${id}&key=${trelloApiKey}&token=${trelloApiToken}&name=requestLeft`
+  const response = await fetch(url, {method: 'POST'}).then(addCheckList)
 
-Nightbot-Channel: name=night&displayName=Night&provider=twitch&providerId=11785491
-*/
+}
 
-const addBuildRequest = (chatter, number) => {}
+const populateCheckList = async (card) => {
+  const { id, due, idBoard, idList } = card
+    const url = `https://api.trello.com/1/checklists?idCard=${id}&key=${trelloApiKey}&token=${trelloApiToken}&name=requestLeft`
+    const response = await fetch(url, {method: 'POST'}).then(addCheckList)
+}
+
+const modifyCheckList = async () => 
+
+const addBuildRequest = async (chatter, number) => {
+  const url = `https://api.trello.com/1/cards?idList=${requestIdList}&key=${trelloApiKey}&token=${trelloApiToken}&name=${chatter}`
+  const response = await fetch(url, {method: 'POST'}).then(addCheckList)
+}
+
 const checkAvailableRequests = (chatter) => {}
 const addBuild = (chatter, build) => {}
 const cleanBanked = (number) => {}
@@ -43,20 +58,18 @@ const parseNightbotUser = (userParams: string) => {
   };
 };
 
-const parseRequest = (apiRequest: string) => {
-
+const parseRequest = async (apiRequest: string) => {
+  channelRequests()
+  await 
 }
 
 export default async function (req: NextApiRequest, res: NextApiResponse) {
-  const channel = parseNightbotChannel(
-    req.headers['nightbot-channel'] as string
-  );
-
-  const user = parseNightbotUser(req.headers['nightbot-user'] as string);
+  const chatter = parseNightbotUser(req.headers['nightbot-user'] as string);
+  const parseRequest(req.query, user);
 
   res
     .status(200)
     .send(
-      `Hello! Your username is ${user.displayName} and the current channel is ${channel.displayName}. ${process.env.REQUEST_ID_LIST}`
+      `Hello! Your username is ${user.displayName} and the current channel is ${channel.displayName}. ${JSON.stringify(req.query)}`
     );
 }
