@@ -76,7 +76,7 @@ const checkFirstAvailableRequest = async (chatter) => {
     .then(res => res.json())
   const cardsInBanked = response.cards
     .filter(item => item.idList === requestIdList && !item.closed)
-    .sort((a,b) => new Date(a.due) - new Date(b.due));  
+    .sort((a,b) => new Date(a.due).getTime() - new Date(b.due).getTime());  
 
   const checkListIdInFirstBanked = cardsInBanked[0].idChecklists[0]
   const checkListUrl = `https://api.trello.com/1/checklists/${checkListIdInFirstBanked}?key=${trelloApiKey}&token=${trelloApiToken}`
