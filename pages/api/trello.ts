@@ -29,23 +29,27 @@ const populateCheckList = async (checkList, number) => {
   
   const url = `https://api.trello.com/1/checklists/${id}/checkItems/?name=request_${count}&key=${trelloApiKey}&token=${trelloApiToken}`
   const response = await fetch(url, {method: 'POST'}).then(res => count === 1 ? res : populateCheckList(checkList, count-1))
-  console.log(response)
   return response
 }
 
 const modifyCheckList = async () => {}
 
 const addBuildRequest = async (chatter, number) => {
-  const url = `https://api.trello.com/1/cards?idList=${requestIdList}&key=${trelloApiKey}&token=${trelloApiToken}&name=${chatter.displayName}`
+    console.log("chatter", chatter)
+  console.log("number", number)
+  const url = `https://api.trello.com/1/cards?idList=${requestIdList}&key=${trelloApiKey}&token=${trelloApiToken}&name=${chatter}`
   const response = await fetch(url, {method: 'POST'})
     .then(res => res.json())
-    .then(res => addCheckList(res, number));
+    .then(res => addCheckList(res, number))
+    .finally(() => `${number} requests added for ${chatter}`)
+
   return response
 }
 
 const checkAvailableRequests = (chatter) => {}
 const addBuild = (chatter, build) => {}
 const cleanQ = (number) => {}
+
 
 const channelRequests = {
   add: (chatter, number) => addBuildRequest(chatter, number),
@@ -78,7 +82,10 @@ const parseNightbotUser = (userParams: string) => {
 };
 
 const parseRequest = async (apiRequest: any) => {
-  const {action, chatter, params} = apiRequest;
+  const { action, chatter, params } = apiRequest;
+  console.log("action", action)
+  console.log("chatter", chatter)
+  console.log("params", params)
   return channelRequests[action](chatter, params);
 }
 
@@ -88,7 +95,7 @@ export default async function (req: NextApiRequest, res: NextApiResponse) {
     res
     .status(200)
     .send(
-      `action Response add test ${JSON.stringify(actionResponse)}`
+      actionResponse
     );
   }catch(e){
     res
