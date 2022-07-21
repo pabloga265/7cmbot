@@ -49,10 +49,8 @@ const addBuildRequest = async (chatter, number) => {
 
 const checkAvailableRequests = async (chatter) => {
   const url = `https://api.trello.com/1/search?query=${chatter}&modelTypes=cards&card_fields=name&key=${trelloApiKey}&token=${trelloApiToken}&card_list=true&card_fields=idList,checkItemStates,idChecklists,due,closed`
-
   const response = await fetch(url, {method: 'GET'})
     .then(res => res.json())
-
   const cardsInBanked = response.cards
     .filter(item => item.idList === requestIdList && !item.closed)
     .sort((a,b) => new Date(a.due).getTime() - new Date(b.due).getTime());
@@ -95,7 +93,7 @@ const markRequestAsDone = async (cardId, checkedItemId) => {
 }
 
 const addBuild = async (chatter, build) => {
-  const [queryChatter, queryAction, ...rest] = decodeURI(build).split(" ");
+  const [queryChatter, ...rest] = decodeURI(build).split(" ");
   const buildString = encodeURI(`${chatter} - ${rest.join(" ")}`);
   const {cardId, checkedItemId, last, empty} = await checkFirstAvailableRequest(chatter)
   if(empty) return `The user ${chatter} doesn't have any request left`
