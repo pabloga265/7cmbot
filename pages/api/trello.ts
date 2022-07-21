@@ -24,19 +24,14 @@ const populateCheckList = async (checkList, number) => {
     limits,
   } = checkList;
   const count = parseInt(number);
-  console.log("count")
-  console.log(count)
-  
   const url = `https://api.trello.com/1/checklists/${id}/checkItems/?name=request_${count}&key=${trelloApiKey}&token=${trelloApiToken}`
-  const response = await fetch(url, {method: 'POST'}).then(res => count === 1 ? res : populateCheckList(checkList, count-1))
-  return response
+  const response = await fetch(url, {method: 'POST'})
+    .then(res => count === 1 ? res : await populateCheckList(checkList, count-1))
 }
 
 const modifyCheckList = async () => {}
 
 const addBuildRequest = async (chatter, number) => {
-    console.log("chatter", chatter)
-  console.log("number", number)
   const url = `https://api.trello.com/1/cards?idList=${requestIdList}&key=${trelloApiKey}&token=${trelloApiToken}&name=${chatter}`
   const response = await fetch(url, {method: 'POST'})
     .then(res => res.json())
@@ -58,34 +53,8 @@ const channelRequests = {
   clean: (chatter, number) => cleanQ(number)
 }
 
-const parseNightbotChannel = (channelParams: string) => {
-  const params = new URLSearchParams(channelParams);
-
-  return {
-    name: params.get('name'),
-    displayName: params.get('displayName'),
-    provider: params.get('provider'),
-    providerId: params.get('providerId')
-  };
-};
-
-const parseNightbotUser = (userParams: string) => {
-  const params = new URLSearchParams(userParams);
-
-  return {
-    name: params.get('name'),
-    displayName: params.get('displayName'),
-    provider: params.get('provider'),
-    providerId: params.get('providerId'),
-    userLevel: params.get('userLevel')
-  };
-};
-
 const parseRequest = async (apiRequest: any) => {
   const { action, chatter, params } = apiRequest;
-  console.log("action", action)
-  console.log("chatter", chatter)
-  console.log("params", params)
   return channelRequests[action](chatter, params);
 }
 
@@ -104,6 +73,4 @@ export default async function (req: NextApiRequest, res: NextApiResponse) {
       `err ${JSON.stringify(e)}`
     );
   }
-  
-
 }
