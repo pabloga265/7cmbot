@@ -122,7 +122,8 @@ const channelRequests = {
 
 const parseRequest = async (apiRequest: any) => {
   const { action, chatter, params } = apiRequest;
-  return channelRequests[action](chatter, params);
+  const cleanChatter = chatter.replace('@', '')
+  return channelRequests[action](cleanChatter, params);
 }
 
 export default async function (req: NextApiRequest, res: NextApiResponse) {
