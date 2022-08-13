@@ -3,7 +3,8 @@
   "scripts": {
     "dev": "next",
     "build": "next build",
-    "start": "next start && node bot",
+    "start": "next start",
+    "lint": "next lint",
     "type-check": "tsc"
   },
   "dependencies": {
