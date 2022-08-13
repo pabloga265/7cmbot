@@ -7,11 +7,13 @@
     "type-check": "tsc"
   },
   "dependencies": {
-    "eslint": "^8.20.0",
+    "@tensorflow/tfjs": "^3.19.0",
+    "eslint": "^8.21.0",
     "next": "latest",
     "node-mocks-http": "^1.11.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "tmi.js": "^1.8.5"
   },
   "devDependencies": {
     "@types/node": "^18.0.6",
