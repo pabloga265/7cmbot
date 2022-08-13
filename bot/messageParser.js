@@ -8,9 +8,7 @@ const parseMessage = ({target, context, msg, self}) => {
   const commandName = msg.trim();
   if (commandName === '!111') {
     return `111 is 7 in binary`
-    console.log(`* Executed ${commandName} command`);
   } else {
-    console.log(`* Unknown command ${commandName}`);
     return false;
   }
 }
